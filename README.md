@@ -21,7 +21,4 @@ The database consists of 4 core normalized tables linked via Foreign Keys to ens
 
 ---
 
-## 📁 Repository Structure
 
-```text
-├── global_transport_analytics.sql   # Complete database schema, seed data, and analytical queries
