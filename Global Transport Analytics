@@ -1,0 +1,116 @@
+CREATE TABLE carriers (
+Carrier_ID INT AUTO_INCREMENT PRIMARY KEY,
+Carrier_Name VARCHAR(50),
+Country VARCHAR(50),
+Service_Type VARCHAR(50),
+Rating INT
+);
+CREATE TABLE Routes(
+Route_ID INT AUTO_INCREMENT PRIMARY KEY,
+Origin VARCHAR(50),
+Destination VARCHAR(50),
+Estimated_Date DATE
+);
+CREATE TABLE Shipments(
+Tracking_Number INT PRIMARY KEY AUTO_INCREMENT,
+Carrier_ID INT,
+Route_ID INT,
+Dispatch_Date DATE NOT NULL,
+Estimated_Delivery_Date DATE NOT NULL,
+Actual_Delivery_Date DATE,
+Shipment_Status VARCHAR(30) DEFAULT "In Transit",
+FOREIGN KEY (Carrier_ID) REFERENCES Carriers(Carrier_ID) ON DELETE SET NULL,
+FOREIGN KEY(Route_ID) REFERENCES Routes(Route_ID) ON DELETE SET NULL
+);
+
+CREATE TABLE Shipment_Cost(
+Shipment_Weight DECIMAL (10,2) NOT NULL,
+Tracking_Number INT,
+Fuel_Surcharge INT,
+Total_Cost DECIMAL (10,2) NOT NULL,
+FOREIGN KEY (Tracking_Number) REFERENCES Shipments(Tracking_Number) ON DELETE SET NULL);
+
+DROP TABLE IF EXISTS Shipment_Cost;
+DROP TABLE IF EXISTS Shipments;
+DROP TABLE IF EXISTS Routes;
+DROP TABLE IF EXISTS Carriers;
+
+CREATE TABLE carriers (
+Carrier_ID INT AUTO_INCREMENT PRIMARY KEY,
+Carrier_Name VARCHAR(50),
+Country VARCHAR(50),
+Service_Type VARCHAR(50),
+Rating INT
+);
+CREATE TABLE Routes(
+Route_ID INT AUTO_INCREMENT PRIMARY KEY,
+Origin VARCHAR(50),
+Destination VARCHAR(50),
+Estimated_Date DATE
+);
+CREATE TABLE Shipments(
+Tracking_Number INT PRIMARY KEY AUTO_INCREMENT,
+Carrier_ID INT,
+Route_ID INT,
+Dispatch_Date DATE NOT NULL,
+Estimated_Delivery_Date DATE NOT NULL,
+Actual_Delivery_Date DATE,
+Shipment_Status VARCHAR(30) DEFAULT "In Transit",
+FOREIGN KEY (Carrier_ID) REFERENCES Carriers(Carrier_ID) ON DELETE SET NULL,
+FOREIGN KEY(Route_ID) REFERENCES Routes(Route_ID) ON DELETE SET NULL
+);
+
+CREATE TABLE Shipment_Cost(
+Shipment_Weight DECIMAL (10,2) NOT NULL,
+Tracking_Number INT,
+Fuel_Surcharge INT,
+Total_Cost DECIMAL (10,2) NOT NULL,
+FOREIGN KEY (Tracking_Number) REFERENCES Shipments(Tracking_Number) ON DELETE SET NULL);
+
+INSERT INTO Carriers (Carrier_Name,Country, Service_Type, Rating) VALUES
+('FedEX','USA','Air',5),
+('DHL Global', 'Germany', 'Ocean', '5'),
+('UPS Freight', 'USA', 'Ground', '4'),
+('Maersk Logistics', 'Denmark', 'Ocean', '4'),
+('Kuehne+Nagel', 'Switzerland', 'Air', 4),
+('DB Schenker', 'Germany', 'Ground', 3);
+
+INSERT INTO Routes (Origin, Destination, Estimated_Date) VALUES
+('New York', 'London','2026-10-14'),
+('Berlin','Mumbai', '2026-11-24'),
+('Los Angeles', 'Tokyo', '2026-06-25'),
+('Shanghai', 'Rotterdam', '2026-07-02'),
+('Singapore', 'Sydney', '2026-07-08'),
+('Mumbai', 'Dubai', '2026-07-12'),
+('Toronto', 'Paris', '2026-07-15');
+
+INSERT INTO Shipments (carrier_id, route_id, dispatch_date, estimated_delivery_date, actual_delivery_date, shipment_status) VALUES
+(1, 1, '2026-06-10', '2026-06-15', '2026-06-15', 'Delivered'),
+(2, 2, '2026-06-12', '2026-06-20', NULL, 'In Transit'),
+(3, 3, '2026-06-14', '2026-06-25', '2026-06-26', 'Delayed'),
+(4, 4, '2026-06-18', '2026-07-02', '2026-07-01', 'Delivered'),
+(5, 5, '2026-06-20', '2026-07-08', NULL, 'In Transit'),
+(6, 6, '2026-06-22', '2026-07-12', '2026-07-14', 'Delayed'),
+(1, 7, '2026-06-25', '2026-07-15', NULL, 'In Transit'),
+(2, 1, '2026-06-28', '2026-07-03', '2026-07-03', 'Delivered');
+
+INSERT INTO shipment_cost (shipment_weight, tracking_number, fuel_surcharge, total_cost) VALUES
+(120.50, 1, 45, 450.00),
+(300.00, 2, 60, 820.50),
+(85.20, 3, 20, 210.00),
+(1250.00, 4, 150, 3100.00),
+(450.75, 5, 80, 1250.00),
+(95.00, 6, 25, 340.00),
+(210.00, 7, 50, 690.00),
+(540.30, 8, 90, 1420.00);
+
+SELECT 
+    c.carrier_name,
+    COUNT(s.tracking_number) AS total_shipments,
+    SUM(CASE WHEN s.shipment_status = 'Delivered' THEN 1 ELSE 0 END) AS delivered_count,
+    SUM(CASE WHEN s.shipment_status = 'Delayed' THEN 1 ELSE 0 END) AS delayed_count,
+    SUM(sc.total_cost) AS total_revenue
+FROM carriers c
+LEFT JOIN shipments s ON c.carrier_id = s.carrier_id
+LEFT JOIN shipment_cost sc ON s.tracking_number = sc.tracking_number
+GROUP BY c.carrier_name;
